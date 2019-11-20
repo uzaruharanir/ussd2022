@@ -1,0 +1,25 @@
+{
+  "name": "menya-ussd",
+  "version": "1.0.0",
+  "description": "USSD app to help the population access agriculture information with ease!",
+  "main": "index.js",
+  "repository": "git@github.com:avpaul/menya-ussd.git",
+  "author": "avpaul <vabimana@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "africastalking": "^0.4.2",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "helmet": "^3.21.2",
+    "mongoose": "^5.7.12"
+  },
+  "devDependencies": {
+    "morgan": "^1.9.1",
+    "nodemon": "^1.19.4"
+  }
+}
