@@ -59,3 +59,7 @@ typings/
 
 # next.js build output
 .next
+
+# dev data
+cities.js
+city.list.json
