@@ -1,4 +1,5 @@
 const https = require('https');
+const formatHelpers = require('../utils/formatDescription');
 /**
  *
  * @param {string} userInput
@@ -20,6 +21,11 @@ const main = async (req, res, error) => {
   } else {
     menuArguments = [];
     menuLevel = 0;
+  }
+
+  if (parseInt(menuArguments[menuLevel - 1]) === 100) {
+    menuArguments.splice(menuLevel - 2, 2);
+    menuLevel = menuLevel - 2;
   }
 
   switch (menuLevel) {
@@ -56,6 +62,22 @@ const main = async (req, res, error) => {
     }
 
     case 3: {
+      const districts = [
+        { district: 'Rubavu', cities: ['Rubavu', 'Gisenyi'] },
+        { district: 'Ngoma', cities: ['Kibungo'] },
+        { district: 'Gicumbi', cities: ['Byumba'] },
+        { district: 'Huye', cities: ['Huye'] },
+        { district: 'Musanze', cities: ['Musanze'] },
+        { district: 'Karongi', cities: ['Kibuye'] },
+        { district: 'Rusizi', cities: ['Cyangugu'] },
+        { district: 'Nyaruguru', cities: ['Gikongoro'] },
+        { district: 'Kicukiro', cities: ['Samuduha', 'Nyakabanda'] },
+        { district: 'Muhanga', cities: ['Gitarama'] },
+        { district: 'Nyamagabe', cities: ['Nzega'] },
+        { district: 'Nyarugenge', cities: ['Kannyogo'] },
+        { district: 'Kigali', cities: ['Kigali'] },
+        { district: 'Gasabo', cities: ['Kigali'] }
+      ];
       if (parseInt(menuArguments[0], 10) === 1) {
         const district = menuArguments[2];
         if (!district) {
@@ -63,23 +85,6 @@ const main = async (req, res, error) => {
           break;
         }
         if (parseInt(menuArguments[1], 10) === 1) {
-          const districts = [
-            { district: 'Rubavu', cities: ['Rubavu', 'Gisenyi'] },
-            { district: 'Ngoma', cities: ['Kibungo'] },
-            { district: 'Gicumbi', cities: ['Byumba'] },
-            { district: 'Huye', cities: ['Huye'] },
-            { district: 'Musanze', cities: ['Musanze'] },
-            { district: 'Karongi', cities: ['Kibuye'] },
-            { district: 'Rusizi', cities: ['Cyangugu'] },
-            { district: 'Nyaruguru', cities: ['Gikongoro'] },
-            { district: 'Kicukiro', cities: ['Samuduha', 'Nyakabanda'] },
-            { district: 'Muhanga', cities: ['Gitarama'] },
-            { district: 'Nyamagabe', cities: ['Nzega'] },
-            { district: 'Nyarugenge', cities: ['Kannyogo'] },
-            { district: 'Kigali', cities: ['Kigali'] },
-            { district: 'Gasabo', cities: ['Kigali'] }
-          ];
-
           const districtData = districts.find(
             city => city.district.toLowerCase() === district
           );
@@ -103,15 +108,20 @@ const main = async (req, res, error) => {
           });
 
           response = `END Iteganyagihe mu karere ka ${districtData.district} \n
-                      ${weatherInfo.weather[0].description} \n
-                      ${weatherInfo.main.temp} \n
-                      ${weatherInfo.main.temp_min} \n
-                      ${weatherInfo.main.temp_max} \n
+                      ${formatHelpers.formatDescription(
+                        weatherInfo.weather[0].description
+                      )} \n
+                      Igipimo cyubushuye cyohasi ni ${
+                        weatherInfo.main.temp_min
+                      }°C \n
+                      Igipimo cyubushuye cyohejuru ni ${
+                        weatherInfo.main.temp_max
+                      }°C \n
                       Izuba rirarenga ${new Date(
                         weatherInfo.sys.sunset
                       ).getHours()}:${new Date(
             weatherInfo.sys.sunset
-          ).getMinutes()} ${new Date(weatherInfo.sys.sunset).getSeconds()}
+          ).getMinutes()} 
               `;
           break;
         } else {
@@ -128,7 +138,51 @@ const main = async (req, res, error) => {
           break;
         }
       } else {
+        const district = menuArguments[2];
+        if (!district) {
+          response = "CON Enter the district's name please!";
+          break;
+        }
         if (parseInt(menuArguments[1], 10) === 1) {
+          const districtData = districts.find(
+            city => city.district.toLowerCase() === district
+          );
+
+          if (!districtData) {
+            response = "CON Enter the district's name please!";
+            break;
+          }
+          const WEATHER_API = `https://api.openweathermap.org/data/2.5/weather?q=${districtData.cities[0]},rw&units=metric&appid=${process.env.OPEN_WEATHER_API_KEY}`;
+
+          const weatherInfo = await new Promise((resolve, reject) => {
+            https
+              .get(WEATHER_API, response => {
+                let data = '';
+                response.on('data', chunk => (data += chunk));
+                response.on('end', () => resolve(JSON.parse(data)));
+              })
+              .on('error', err => {
+                return reject(err);
+              });
+          });
+
+          response = `END Weather forecast in ${districtData.district} \n
+                        The weather will mostly be ${
+                          weatherInfo.weather[0].description
+                        } \n
+                        The lowest temperature will be ${
+                          weatherInfo.main.temp_min
+                        }°C \n
+                        The highest temperature will be ${
+                          weatherInfo.main.temp_max
+                        }°C \n
+                        The Sun will set at ${new Date(
+                          weatherInfo.sys.sunset
+                        ).getHours()}:${new Date(
+            weatherInfo.sys.sunset
+          ).getMinutes()} 
+                `;
+          break;
         } else {
           response = `CON Select section
                   1. Agriculture periods
@@ -172,7 +226,7 @@ const main = async (req, res, error) => {
         response = 'END Turacyakusanya amakuru yose!';
         break;
       } else {
-        response = 'END Umubare muhisemo ntubaho!';
+        response = 'END Umubare muhisemo ntiwemewe!';
         break;
       }
     }
