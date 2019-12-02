@@ -1,4 +1,4 @@
-function formatDescription(description) {
+export function formatDescription(description) {
   switch (description) {
     case 'moderate rain':
       return 'Haragwa imvura iringaniye!';
@@ -30,5 +30,3 @@ function formatDescription(description) {
       return description;
   }
 }
-
-module.exports = { formatDescription };

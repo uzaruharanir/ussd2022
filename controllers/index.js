@@ -1,5 +1,8 @@
-const https = require('https');
-const formatHelpers = require('../utils/formatDescription');
+import https from 'https';
+import contentful from 'contentful';
+import { formatDescription } from '../utils/formatDescription.js';
+import { formatSeasons } from '../utils/formatSeasons.js';
+
 /**
  *
  * @param {string} userInput
@@ -9,7 +12,7 @@ function getLevel(userInput) {}
 /**
  * main route controller
  * */
-const main = async (req, res, error) => {
+export const main = async (req, res, error) => {
   const { sessionId, serviceCode, phoneNumber, text } = req.body;
   let menuArguments;
   let menuLevel;
@@ -39,14 +42,11 @@ const main = async (req, res, error) => {
     case 1:
       if (parseInt(menuArguments[0], 10) === 1) {
         response = `CON Hitamo amakuru ushaka \n
-                  1. Imihindagurikire y'ikirere
-                  2. Ubuhinzi
-      `;
+                  1. Imihindagurikire y'ikirere`;
         break;
       } else {
         response = `CON Choose the information you need \n
                   1. Climate change
-                  2. Agriculture
       `;
         break;
       }
@@ -76,7 +76,7 @@ const main = async (req, res, error) => {
         { district: 'Nyamagabe', cities: ['Nzega'] },
         { district: 'Nyarugenge', cities: ['Kannyogo'] },
         { district: 'Kigali', cities: ['Kigali'] },
-        { district: 'Gasabo', cities: ['Kigali'] }
+        { district: 'Gasabo', cities: ['Kigali'] },
       ];
       if (parseInt(menuArguments[0], 10) === 1) {
         const district = menuArguments[2];
@@ -86,7 +86,7 @@ const main = async (req, res, error) => {
         }
         if (parseInt(menuArguments[1], 10) === 1) {
           const districtData = districts.find(
-            city => city.district.toLowerCase() === district
+            (city) => city.district.toLowerCase() === district
           );
 
           if (!districtData) {
@@ -97,18 +97,18 @@ const main = async (req, res, error) => {
 
           const weatherInfo = await new Promise((resolve, reject) => {
             https
-              .get(WEATHER_API, response => {
+              .get(WEATHER_API, (response) => {
                 let data = '';
-                response.on('data', chunk => (data += chunk));
+                response.on('data', (chunk) => (data += chunk));
                 response.on('end', () => resolve(JSON.parse(data)));
               })
-              .on('error', err => {
+              .on('error', (err) => {
                 return reject(err);
               });
           });
 
           response = `END Iteganyagihe mu karere ka ${districtData.district} \n
-                      ${formatHelpers.formatDescription(
+                      ${formatDescription(
                         weatherInfo.weather[0].description
                       )} \n
                       Igipimo cyubushuye cyohasi ni ${
@@ -129,10 +129,8 @@ const main = async (req, res, error) => {
                   1. Igihe cyihinga
                   2. Igihingwa k'akarere
                   3. Iyuhira
-                  4. Kubungabunga ubutaka no kongera umusaruro
+                  4. Kubungabunga ibidukikije no kongera umusaruro
                   5. Imbuto zo guhinga
-                  6. Kubungabunga ibidukikije mubuhinzi
-                  7. Kugurisha umusaruro
                   100. Subira inyuma
               `;
           break;
@@ -145,7 +143,7 @@ const main = async (req, res, error) => {
         }
         if (parseInt(menuArguments[1], 10) === 1) {
           const districtData = districts.find(
-            city => city.district.toLowerCase() === district
+            (city) => city.district.toLowerCase() === district
           );
 
           if (!districtData) {
@@ -156,12 +154,12 @@ const main = async (req, res, error) => {
 
           const weatherInfo = await new Promise((resolve, reject) => {
             https
-              .get(WEATHER_API, response => {
+              .get(WEATHER_API, (response) => {
                 let data = '';
-                response.on('data', chunk => (data += chunk));
+                response.on('data', (chunk) => (data += chunk));
                 response.on('end', () => resolve(JSON.parse(data)));
               })
-              .on('error', err => {
+              .on('error', (err) => {
                 return reject(err);
               });
           });
@@ -188,10 +186,8 @@ const main = async (req, res, error) => {
                   1. Agriculture periods
                   2. Your district's crop
                   3. Irrigation
-                  4. Land conservation and increasing crop yield
+                  4. Environment conservation and increasing crop yield
                   5. Agriculture fruits
-                  6. Environment conservation in Agriculture
-                  7. Sell agriculture production
                   100. Back
               `;
           break;
@@ -201,10 +197,19 @@ const main = async (req, res, error) => {
 
     case 4: {
       if (parseInt(menuArguments[3], 10) === 1) {
-        response = `END Turi mugihebwe cy'ihinga A \n
-                    Igihe cy'ihinga A gitangira mu KUBOZA – GASHYANTARE (umwaka ukurikira)\n
-                    Igihe cy’ihinga B gitangira muri GICURASI – KAMENA \n
-                    Igihe cy’ihinga C gitangira muri KANAMA – NZELI 
+        const client = contentful.createClient({
+          space: process.env.CT_SPACE_ID,
+          accessToken: process.env.CT_DELIVERY_ACCESS_KEY,
+        });
+        const seasonsJson = await client.getEntries({
+          content_type: 'agricultureSeason',
+          'fields.year': '2019-2020',
+        });
+        const formatedSeason = formatSeasons(seasonsJson.items);
+        response = `END ${formatedSeason.next().value}
+              ${formatedSeason.next().value}
+              ${formatedSeason.next().value}
+              ${formatedSeason.next().value}
             `;
         break;
       } else if (parseInt(menuArguments[3], 10) === 2) {
@@ -236,8 +241,4 @@ const main = async (req, res, error) => {
       break;
   }
   return res.status(200).send(response);
-};
-
-module.exports = {
-  main
 };
