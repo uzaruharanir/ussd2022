@@ -23,7 +23,6 @@ app.use((err, req, res, next) => {
   if (err.status === 500) {
     return res.status(500).text('Please try again later!');
   }
-  //   return res.status(500).send('Something happened');
   return res.status(500).send(err.message);
 });
 

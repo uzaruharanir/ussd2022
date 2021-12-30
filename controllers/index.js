@@ -1,7 +1,7 @@
-import https from 'https';
-import contentful from 'contentful';
-import { formatDescription } from '../utils/formatDescription.js';
-import { formatSeasons } from '../utils/formatSeasons.js';
+import https from "https";
+import contentful from "contentful";
+import { formatDescription } from "../utils/formatDescription.js";
+import { formatSeasons } from "../utils/formatSeasons.js";
 
 /**
  *
@@ -18,8 +18,57 @@ export const main = async (req, res, error) => {
   let menuLevel;
   let response;
 
+  const provinces = ["west", "east", "North", "south", "kigali"];
+  const intara = [
+    "Uburengerazuba",
+    "Uburasirazuba",
+    "Amjyepfo",
+    "Amjyaruguru",
+    "kigali",
+  ];
+
+  const locations = [
+    {
+      province: "west",
+      districts: [
+        { district: "Rubavu", cities: ["Rubavu", "Gisenyi"] },
+        { district: "Karongi", cities: ["Kibuye"] },
+        { district: "Rusizi", cities: ["Cyangugu"] },
+      ],
+    },
+    {
+      province: "east",
+      districts: [{ district: "Ngoma", cities: ["Kibungo"] }],
+    },
+    {
+      province: "south",
+      districts: [
+        { district: "Huye", cities: ["Huye"] },
+        { district: "Muhanga", cities: ["Gitarama"] },
+        { district: "Nyamagabe", cities: ["Nzega"] },
+        { district: "Nyaruguru", cities: ["Gikongoro"] },
+      ],
+    },
+    {
+      province: "north",
+      districts: [
+        { district: "Musanze", cities: ["Musanze"] },
+        { district: "Gicumbi", cities: ["Byumba"] },
+      ],
+    },
+    {
+      province: "kigali",
+      districts: [
+        // { district: "Kigali", cities: ["Kigali"] },
+        { district: "Kicukiro", cities: ["Samuduha", "Nyakabanda"] },
+        { district: "Nyarugenge", cities: ["Kannyogo"] },
+        { district: "Gasabo", cities: ["Kigali"] },
+      ],
+    },
+  ];
+
   if (text) {
-    menuArguments = text.split('*');
+    menuArguments = text.split("*");
     menuLevel = menuArguments.length;
   } else {
     menuArguments = [];
@@ -42,7 +91,7 @@ export const main = async (req, res, error) => {
     case 1:
       if (parseInt(menuArguments[0], 10) === 1) {
         response = `CON Hitamo amakuru ushaka \n
-                  1. Imihindagurikire y'ikirere`;
+                  1. Iteganyagihe`;
         break;
       } else {
         response = `CON Choose the information you need \n
@@ -53,61 +102,75 @@ export const main = async (req, res, error) => {
 
     case 2: {
       if (parseInt(menuArguments[0], 10) === 1) {
-        response = "CON Shyiramo izina ry'akarere";
+        response = "CON Hitamo intara";
+        for (let i = 0; i < 5; i++) {
+          response = response + `\n${i + 1}. ${locations[i].province}`;
+        }
         break;
       } else {
-        response = 'CON Enter the name of the district';
+        response = "CON Choose province";
+        for (let i = 0; i < 5; i++) {
+          response = response + `${i + 1}. ${locations[i].province}`;
+        }
         break;
       }
     }
 
     case 3: {
-      const districts = [
-        { district: 'Rubavu', cities: ['Rubavu', 'Gisenyi'] },
-        { district: 'Ngoma', cities: ['Kibungo'] },
-        { district: 'Gicumbi', cities: ['Byumba'] },
-        { district: 'Huye', cities: ['Huye'] },
-        { district: 'Musanze', cities: ['Musanze'] },
-        { district: 'Karongi', cities: ['Kibuye'] },
-        { district: 'Rusizi', cities: ['Cyangugu'] },
-        { district: 'Nyaruguru', cities: ['Gikongoro'] },
-        { district: 'Kicukiro', cities: ['Samuduha', 'Nyakabanda'] },
-        { district: 'Muhanga', cities: ['Gitarama'] },
-        { district: 'Nyamagabe', cities: ['Nzega'] },
-        { district: 'Nyarugenge', cities: ['Kannyogo'] },
-        { district: 'Kigali', cities: ['Kigali'] },
-        { district: 'Gasabo', cities: ['Kigali'] },
-      ];
       if (parseInt(menuArguments[0], 10) === 1) {
-        const district = menuArguments[2];
-        if (!district) {
-          response = "CON Ongera ushyirimo izina ry'akarere";
+        const chosenProvince = menuArguments[2];
+        const districts = locations[chosenProvince - 1].districts || [];
+
+        if (districts.length === 0) {
+          response = "END Ibyo mwahisemo nibikunze";
           break;
         }
-        if (parseInt(menuArguments[1], 10) === 1) {
-          const districtData = districts.find(
-            (city) => city.district.toLowerCase() === district
-          );
 
-          if (!districtData) {
+        response = "CON Hitamo akarere";
+        for (let i = 0; i < districts.length; i++) {
+          response = response + `\n${i + 1}. ${districts[i].district}`;
+        }
+        break;
+      } else {
+        response = "CON Choose the district";
+        break;
+      }
+    }
+
+    case 4: {
+      if (parseInt(menuArguments[0], 10) === 1) {
+        if (parseInt(menuArguments[1], 10) === 1) {
+          const chosenProvince = menuArguments[2];
+          const chosenDistrict = menuArguments[3];
+
+          const district = locations[chosenProvince - 1].districts
+            ? locations[chosenProvince - 1].districts[chosenDistrict - 1]
+            : undefined;
+
+          if (!district) {
+            response = "END Ibyo mwahisemo nibikunze";
+            break;
+          }
+
+          if (!district) {
             response = "CON Ongera ushyirimo izina ry'akarere";
             break;
           }
-          const WEATHER_API = `https://api.openweathermap.org/data/2.5/weather?q=${districtData.cities[0]},rw&units=metric&appid=${process.env.OPEN_WEATHER_API_KEY}`;
+          const WEATHER_API = `https://api.openweathermap.org/data/2.5/weather?q=${district.cities[0]},rw&units=metric&appid=${process.env.OPEN_WEATHER_API_KEY}`;
 
           const weatherInfo = await new Promise((resolve, reject) => {
             https
               .get(WEATHER_API, (response) => {
-                let data = '';
-                response.on('data', (chunk) => (data += chunk));
-                response.on('end', () => resolve(JSON.parse(data)));
+                let data = "";
+                response.on("data", (chunk) => (data += chunk));
+                response.on("end", () => resolve(JSON.parse(data)));
               })
-              .on('error', (err) => {
+              .on("error", (err) => {
                 return reject(err);
               });
           });
 
-          response = `END Iteganyagihe mu karere ka ${districtData.district} \n
+          response = `END Iteganyagihe mu karere ka ${district.district} \n
                       ${formatDescription(
                         weatherInfo.weather[0].description
                       )} \n
@@ -136,16 +199,19 @@ export const main = async (req, res, error) => {
           break;
         }
       } else {
-        const district = menuArguments[2];
+        const chosenProvince = menuArguments[2];
+        const chosenDistrict = menuArguments[3];
+
+        const districtData = locations[chosenProvince - 1].districts
+          ? locations[chosenProvince - 1].districts[chosenDistrict - 1]
+          : undefined;
+
         if (!district) {
           response = "CON Enter the district's name please!";
           break;
         }
-        if (parseInt(menuArguments[1], 10) === 1) {
-          const districtData = districts.find(
-            (city) => city.district.toLowerCase() === district
-          );
 
+        if (parseInt(menuArguments[1], 10) === 1) {
           if (!districtData) {
             response = "CON Enter the district's name please!";
             break;
@@ -155,11 +221,11 @@ export const main = async (req, res, error) => {
           const weatherInfo = await new Promise((resolve, reject) => {
             https
               .get(WEATHER_API, (response) => {
-                let data = '';
-                response.on('data', (chunk) => (data += chunk));
-                response.on('end', () => resolve(JSON.parse(data)));
+                let data = "";
+                response.on("data", (chunk) => (data += chunk));
+                response.on("end", () => resolve(JSON.parse(data)));
               })
-              .on('error', (err) => {
+              .on("error", (err) => {
                 return reject(err);
               });
           });
@@ -195,15 +261,15 @@ export const main = async (req, res, error) => {
       }
     }
 
-    case 4: {
+    case 5: {
       if (parseInt(menuArguments[3], 10) === 1) {
         const client = contentful.createClient({
           space: process.env.CT_SPACE_ID,
           accessToken: process.env.CT_DELIVERY_ACCESS_KEY,
         });
         const seasonsJson = await client.getEntries({
-          content_type: 'agricultureSeason',
-          'fields.year': '2019-2020',
+          content_type: "agricultureSeason",
+          "fields.year": "2019-2020",
         });
         const formatedSeason = formatSeasons(seasonsJson.items);
         response = `END ${formatedSeason.next().value}
@@ -213,31 +279,31 @@ export const main = async (req, res, error) => {
             `;
         break;
       } else if (parseInt(menuArguments[3], 10) === 2) {
-        response = 'END Turacyakusanya amakuru yose!';
+        response = "END Turacyakusanya amakuru yose!";
         break;
       } else if (parseInt(menuArguments[3], 10) === 3) {
-        response = 'END Turacyakusanya amakuru yose!';
+        response = "END Turacyakusanya amakuru yose!";
         break;
       } else if (parseInt(menuArguments[3], 10) === 4) {
-        response = 'END Turacyakusanya amakuru yose!';
+        response = "END Turacyakusanya amakuru yose!";
         break;
       } else if (parseInt(menuArguments[3], 10) === 5) {
-        response = 'END Turacyakusanya amakuru yose!';
+        response = "END Turacyakusanya amakuru yose!";
         break;
       } else if (parseInt(menuArguments[3], 10) === 6) {
-        response = 'END Turacyakusanya amakuru yose!';
+        response = "END Turacyakusanya amakuru yose!";
         break;
       } else if (parseInt(menuArguments[3], 10) === 7) {
-        response = 'END Turacyakusanya amakuru yose!';
+        response = "END Turacyakusanya amakuru yose!";
         break;
       } else {
-        response = 'END Umubare muhisemo ntiwemewe!';
+        response = "END Umubare muhisemo ntiwemewe!";
         break;
       }
     }
 
     default:
-      response = 'END Wrong choice!';
+      response = "END Wrong choice!";
       break;
   }
   return res.status(200).send(response);
