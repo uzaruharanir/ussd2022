@@ -95,7 +95,7 @@ export const main = async (req, res, error) => {
         break;
       } else {
         response = `CON Choose the information you need \n
-                  1. Climate change
+                  1. Weather Forecasting
       `;
         break;
       }
