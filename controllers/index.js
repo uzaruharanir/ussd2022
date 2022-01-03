@@ -133,7 +133,6 @@ export const main = async (req, res, error) => {
         }
         else{
         response = "CON Choose the district";
-        }
           break;
         }
     }
