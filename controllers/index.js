@@ -18,7 +18,7 @@ export const main = async (req, res, error) => {
   let menuLevel;
   let response;
 
-  const provinces = ["Uburengerazuba", "uburasirazuba", "Amajyaruguru", "Amajyepfo", "Umujyi wa Kigali"];
+  const provinces = ["West", "East", "North", "South", "Kigali City"];
   const intara = [
     "Uburengerazuba",
     "Uburasirazuba",
@@ -107,7 +107,8 @@ export const main = async (req, res, error) => {
           response = response + `\n${i + 1}. ${locations[i].province}`;
         }
         break;
-      } else {
+      } 
+      else {
         response = "CON Choose province";
         for (let i = 0; i < 5; i++) {
           response = response + `\n${i + 1}. ${locations[i].province}`;
@@ -125,14 +126,17 @@ export const main = async (req, res, error) => {
           response = "END Ibyo mwahisemo nibikunze";
           break;
         }
-
+else{
         response = "CON Hitamo akarere";
         for (let i = 0; i < districts.length; i++) {
           response = response + `\n${i + 1}. ${districts[i].district}`;
         }
         break;
-      } else {
+      }
+        
         response = "CON Choose the district";
+        for (let i= 0; i< districts.length; i++){
+         response = response + `\n${i + 1}. ${districts[i].district}`;
         break;
       }
     }
