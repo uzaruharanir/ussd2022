@@ -18,7 +18,7 @@ export const main = async (req, res, error) => {
   let menuLevel;
   let response;
 
-  const provinces = ["west", "east", "North", "south", "kigali"];
+  const provinces = ["Uburengerazuba", "uburasirazuba", "Amajyaruguru", "Amajyepfo", "Umujyi wa Kigali"];
   const intara = [
     "Uburengerazuba",
     "Uburasirazuba",
