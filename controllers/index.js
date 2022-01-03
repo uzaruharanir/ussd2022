@@ -137,8 +137,8 @@ else{
         response = "CON Choose the district";
         for (let i= 0; i< districts.length; i++){
          response = response + `\n${i + 1}. ${districts[i].district}`;
-        break;
-      }
+        }
+          break;
     }
 
     case 4: {
